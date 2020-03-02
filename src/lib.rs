@@ -62,8 +62,8 @@ unsafe extern "C" fn callback_include<F: FnMut(String, bool) -> ffi::IInputStrea
 /// # Example
 ///
 /// ```
-/// use tcpp_rs::*;
-/// use tcpp_rs::ffi::*;
+/// use tcpp::*;
+/// use tcpp::ffi::*;
 ///
 /// fn main() {
 ///     // read content from source file
@@ -71,7 +71,7 @@ unsafe extern "C" fn callback_include<F: FnMut(String, bool) -> ffi::IInputStrea
 ///     let result = process_with(content,
 ///         |error| { // error processor
 ///             panic!("Preprocessor error: {} at line {}"
-///                     , error.get_message() // get description of the error
+///                     , error.get_message().unwrap() // get description of the error
 ///                     , error.get_line()); // get line number of the error
 ///         },
 ///         |_, _|  { // inclusion processor
@@ -103,6 +103,7 @@ pub fn process_with<T, F>(data: String, error: T, include: F) -> Option<String>
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     use crate::ffi::IInputStream;
 
     #[test]
@@ -118,7 +119,7 @@ mod tests {
         #endif\n\
         }\
         ");
-        eprintln!("{:?}", crate::tcpp::process(str));
+        eprintln!("{:?}", process(str));
     }
 
     #[test]
@@ -134,10 +135,10 @@ mod tests {
         #endif\n\
         }\
         ");
-        eprintln!("{:?}", crate::tcpp::process_with(str, |err| {
+        eprintln!("{:?}", process_with(str, |err| {
             eprintln!("error! {:?}", err.get_message());
         }, |_, _| {
-            IInputStream::null()
+            IInputStream::default()
         }));
     }
 }
