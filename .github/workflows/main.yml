@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: rust-cargo
-      uses: actions-rs/cargo@v1.0.1
-      with:
-        command: build
+      - uses: actions/checkout@v1
+      - name: rust-cargo
+        uses: actions-rs/cargo@v1.0.1
+        with:
+          command: build
