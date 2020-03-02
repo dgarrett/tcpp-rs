@@ -1,6 +1,7 @@
 use libc::c_char;
 
-mod ffi;
+/// Foreign functions interface (FFI) definitions
+pub mod ffi;
 
 #[repr(C)]
 struct CallbackSite {
@@ -18,11 +19,18 @@ extern "C" {
 
 }
 
-mod tcpp {
+/// Basic module of this crate
+pub mod tcpp {
     use std::ffi::{CStr, CString};
 
     use crate::{CallbackSite, ffi};
 
+    /// Process c/cpp strings to its expanded form using the `tcpp` preprocessor directly.
+        ///
+        /// This function call cannot handle any errors or inclusions and simply halts when
+        /// a preprocessor error was detected, which makes it not recommended to be used.
+        ///
+        /// You should probably check [`process_with`] instead
     pub fn process(data: String) -> Option<String> {
         let cstring = CString::new(data).ok()?.into_raw();
         let result_raw = unsafe {
@@ -47,6 +55,34 @@ mod tcpp {
         (*closure)(file, boolean).handler
     }
 
+    /// This function calls the `tcpp` preprocessor with two callback functions.
+    ///
+    /// While performs the same as function [`process`], this functions accepts two
+    /// closures to handle errors and inclusion (i.e. `#include`) respectively.
+    /// which gives more flexibility and supports further multi-file processing
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use tcpp_rs::tcpp;
+    /// use tcpp_rs::ffi::*;
+    ///
+    /// fn main() {
+    ///     // read content from source file
+    ///     let content = String::from_utf8(std::fs::read("main.c").unwrap()).unwrap();
+    ///     let result = tcpp::process_with(content,
+    ///         |error| { // error processor
+    ///             panic!("Preprocessor error: {} at line {}"
+    ///                     , error.get_message() // get description of the error
+    ///                     , error.get_line()); // get line number of the error
+    ///         },
+    ///         |_, _|  { // inclusion processor
+    ///             // we just ignore inclusions and returns a default (null) stream
+    ///             IInputStream::default()
+    ///         });
+    /// }
+    /// ```
+    ///
     pub fn process_with<T, F>(data: String, error: T, include: F) -> Option<String>
             where T : FnMut(ffi::TErrorInfo),
                   F : FnMut(String, bool) -> ffi::IInputStream {

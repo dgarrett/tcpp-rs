@@ -10,12 +10,21 @@ extern "C" {
 
 }
 
+/// Struct representing an input stream of bytes or string
 #[repr(C)]
 pub struct IInputStream {
     pub(crate) handler : *mut libc::c_void
 }
 
+impl Default for IInputStream{
+    /// synonym to [`IInputStream::null`]
+    fn default() -> Self {
+        Self::null()
+    }
+}
+
 impl IInputStream {
+    /// Creates a null stream, stands for no input at all
     pub fn null() -> Self {
         IInputStream {
             handler: null_mut()
@@ -26,7 +35,7 @@ impl IInputStream {
 impl TryFrom<String> for IInputStream {
 
     type Error = NulError;
-
+    /// Construct an input stream from a single string
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let cstring = CString::new(value)?;
         let stream = IInputStream {
@@ -39,6 +48,7 @@ impl TryFrom<String> for IInputStream {
 
 }
 
+/// Struct representing a common error within preprocessor
 #[repr(C)]
 pub struct TErrorInfo {
     m_type: libc::c_uint,
@@ -46,11 +56,12 @@ pub struct TErrorInfo {
 }
 
 impl TErrorInfo {
-
+    /// Get the line number of this error
     pub fn get_line(&self) -> usize {
         self.m_line
     }
 
+    /// Get the lint message of this error, returns None if an encoding error occurs
     pub fn get_message(&self) -> Option<String> {
         println!("{}", self.m_type);
         Some(unsafe {
