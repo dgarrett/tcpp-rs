@@ -2,8 +2,6 @@ use std::convert::TryFrom;
 use std::ffi::{CStr, CString, NulError};
 use std::ptr::null_mut;
 
-use libc::c_char;
-
 extern "C" {
 
     fn error_type_to_string(error: libc::c_uint) -> *const libc::c_char;

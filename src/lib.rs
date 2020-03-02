@@ -51,12 +51,11 @@ mod tcpp {
             where T : FnMut(ffi::TErrorInfo),
                   F : FnMut(String, bool) -> ffi::IInputStream {
         let cstring = CString::new(data).ok()?.into_raw();
-        let callbacks = Box::new( unsafe {
+        let callbacks = Box::new(
             CallbackSite {
                 include: Box::into_raw(Box::new(include)) as *mut _,
                 error: Box::into_raw(Box::new(error)) as *mut _
-            }
-        });
+            });
         let result_raw = unsafe {
             CStr::from_ptr(crate::process_with_specs(cstring, Box::into_raw(callbacks) as *const _
                                                      , callback_error::<T>, callback_include::<F>))
